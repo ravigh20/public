@@ -1,0 +1,1153 @@
+# TABLE-EDITOR FORMAT: top-level array; one security control per row.
+# Policy: ABC-SAAS-AI-ENABLEMENT-BASELINE | version: 1.1 | status: draft
+# Inherits: none (shared baseline); mode: additive_only
+# Keep policy-metadata.json with these files for inheritance, features, scope and sources.
+# *_json columns contain quoted JSON text; true/false inside JSON retain their Boolean types.
+# Only the representation changed. Security requirements and evidence remain unmodified.
+
+- id: SAAS-GOV-001
+  name: Feature-specific authorization boundary
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Authorize a named AI feature, tenant, release, user population, purpose and data boundary; do not enable a whole
+    product family by association.
+  implementation: >-
+    Record feature/SKU, environment, region, channels, provider routes, dependencies, capabilities, pilot size and
+    accountable roles before enablement.
+  required_settings_json: '{"feature_inventory_complete": true, "unreviewed_ai_features_enabled": false}'
+  evidence_required_json: '["Feature inventory, bounded intake and approved change scope; record unknown SKUs/providers
+    as gaps."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An additional generative feature is enabled without being included in the reviewed inventory.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-GOV-002
+  name: End-to-end security ownership and endorsement
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    AI Security owns the full security assessment; Security Authority endorses the bounded assessment without repeating
+    its technical review.
+  implementation: >-
+    Name application, tenant, data, operations and AI Security owners. Keep residual-risk acceptance and privacy/legal/model-risk/release
+    approvals with the authorized roles.
+  required_settings_json: '{}'
+  evidence_required_json: '["Assessment ownership matrix, signed assessment reference, bounded SA endorsement and
+    separate domain approvals where required."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A tenant administrator marks the YAML approved without an authorized assessment or endorsement.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-GOV-003
+  name: Reuse existing assurance without hidden gaps
+  domain: Governance
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Reuse current SaaS assurance only for unchanged, covered controls; assess every AI-specific or changed exposure.
+  implementation: >-
+    Map inherited platform evidence by control, feature, tenant, scope and date. Reopen stale evidence and anything
+    not covered by existing approval.
+  required_settings_json: '{}'
+  evidence_required_json: '["Inheritance matrix and delta assessment with explicit vendor/customer/shared responsibility."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A general SaaS approval is used as the sole approval for a new model provider or AI action.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-GOV-004
+  name: Controlled rollout and separation of environments
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Validate in a segregated test environment and restrict production rollout to approved groups; separate development
+    and production permissions.
+  implementation: >-
+    Use synthetic or approved sanitized test data, peer-reviewed changes and a staged activation plan with rollback
+    criteria.
+  required_settings_json: '{"staged_rollout_required": true, "production_data_in_unapproved_test_tenants": false}'
+  evidence_required_json: '["Pilot plan, test-tenant access review, rollout group membership and rollback criteria."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Production customer records are copied into an AI trial tenant.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-GOV-005
+  name: Version-bound decisions and exceptions
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Mandatory unknowns and unsupported safeguards block enablement; exceptions require an authorized, scoped and expiring
+    decision, never a silent waiver.
+  implementation: >-
+    Bind the assessment to feature, model route, connector permissions, policies and versions. Reassess changes; a
+    local status field is not a trusted signature.
+  required_settings_json: '{}'
+  evidence_required_json: '["Decision register, exception owner/expiry/compensating evidence and material-change review
+    history."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A feature proceeds with unknown retention or an expired exception.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-GOV-006
+  name: Human accountability and acceptable use
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Keep humans accountable for generated advice and business outcomes; do not silently expand into regulated decision-making.
+  implementation: >-
+    Train users, label AI content where relevant and require authorized human review before business actions or external
+    publication. Route high-impact use to relevant governance owners.
+  required_settings_json: '{"autonomous_high_impact_decisions_enabled": false, "human_review_before_business_action":
+    true}'
+  evidence_required_json: '["Acceptable-use guidance, user training and documented review points for the intended
+    business process."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Generated financial/customer advice is acted on or sent externally without the required human review.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-IAM-001
+  name: Enterprise sign-in and MFA
+  domain: Identity and access
+  severity: critical
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Use enterprise federation and risk-appropriate MFA for human AI access, including privileged operators.
+  implementation: >-
+    Apply the existing approved IdP and conditional access. Constrain and monitor documented break-glass accounts;
+    test alternate sign-in and API channels.
+  required_settings_json: '{"enterprise_sso_enforced": true, "human_mfa_required": true, "unmanaged_local_ai_accounts_allowed":
+    false}'
+  evidence_required_json: '["SSO/MFA policy and denied-access tests for non-entitled users and alternate sign-in paths."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An unmanaged local account accesses the enabled AI feature.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-IAM-002
+  name: AI entitlements and least privilege
+  domain: Identity and access
+  severity: critical
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Grant AI access only to approved roles and groups; remove broad inherited permissions that expose unnecessary
+    data or administration.
+  implementation: >-
+    Separate users, builders, connector owners and tenant administrators; review direct assignments and privilege-bearing
+    permission bundles.
+  required_settings_json: '{"ai_entitlements_restricted": true, "ai_runtime_admin_privileges": false}'
+  evidence_required_json: '["Feature role/permission-set export and positive/negative access tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A general employee can edit prompts, add connectors or grant AI permissions.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-IAM-003
+  name: Joiner/mover/leaver and access recertification
+  domain: Identity and access
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Revoke AI entitlements, delegated sessions and service credentials when access changes; periodically recertify
+    access.
+  implementation: >-
+    Connect approved provisioning/deprovisioning processes and inventory nonhuman identities, direct grants and cached
+    authorizations.
+  required_settings_json: '{"ai_deprovisioning_includes_tokens": true, "ai_access_recertification_required": true}'
+  evidence_required_json: '["Leaver test showing feature, session, connector and cached access revocation; access
+    review schedule."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A removed user can still retrieve AI-grounded records using a previously issued token.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-IAM-004
+  name: Privileged administration and separation of duties
+  domain: Identity and access
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Restrict AI policy, logging, privacy, model and connector administration and require independent review of security-significant
+    changes.
+  implementation: >-
+    Use time-limited privileged access where available; otherwise document an approved equivalent with monitoring
+    and revocation. Separate approvers from implementers.
+  required_settings_json: '{"security_changes_peer_reviewed": true, "privileged_ai_changes_audited": true}'
+  evidence_required_json: '["Admin role inventory, privileged-access procedure and sample reviewed configuration change."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A builder disables protection and approves their own exception.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-IAM-005
+  name: Sessions, devices and untrusted channels
+  domain: Identity and access
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Constrain sessions and access channels to the approved device, network and user risk policy.
+  implementation: >-
+    Review session lifetime/revocation, browser/mobile/desktop channels and DLP. Treat voice, screen capture and attachments
+    as additional data routes.
+  required_settings_json: '{"session_controls_defined": true, "unapproved_ai_channels_enabled": false}'
+  evidence_required_json: '["Session/channel settings, unmanaged-device decision and session-revocation test."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An unapproved mobile or browser extension route bypasses the reviewed access boundary.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-IAM-006
+  name: Nonhuman identities and delegation
+  domain: Identity and access
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["agents", "external_connectors", "write_actions"]'
+  requirement: >-
+    Use scoped service identities and validate the actual identity and authority at each delegated invocation.
+  implementation: >-
+    Inventory agents, scheduled jobs and integration accounts. Do not equate the initiating user with the principal
+    executing downstream reads or writes.
+  required_settings_json: '{"execution_principals_inventoried": true, "unreviewed_privilege_delegation_allowed": false}'
+  evidence_required_json: '["Execution-identity matrix, service identity grants and a low-privilege-to-high-privilege
+    denial test."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A low-privilege user invokes a powerful service account through an AI tool.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-001
+  name: Data classification and allowed scope
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Allow only explicitly approved data classifications; the conservative ABC starter prohibits PII, SI and HSI in
+    AI inputs and outputs.
+  implementation: >-
+    Inventory prompts, grounding, attachments, generated outputs, memory and logs. Do not assume existing SaaS data
+    approval permits new AI processing. Change this draft restriction only through reviewed policy change.
+  required_settings_json: '{"prohibited_ai_data_classes": ["PII", "SI", "HSI"], "unclassified_ai_data_allowed": false}'
+  evidence_required_json: '["Data-flow classification, data-owner decision and test records for prohibited classes."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A source with prohibited data is added because it was already stored in the SaaS platform.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-002
+  name: Data minimization and field selection
+  domain: Data protection
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Send only the records, fields, history and context necessary for the feature.
+  implementation: >-
+    Use explicit source/field allowlists and bounded history. Exclude secrets, confidential attachments and unrelated
+    records before inference.
+  required_settings_json: '{"grounding_fields_allowlisted": true, "unbounded_history_sent_to_model": false}'
+  evidence_required_json: '["Prompt/grounding field map and sanitized request examples."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Summarization sends an entire record history when only an approved description field is needed.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-003
+  name: Record, field and source permission preservation
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Enforce source authorization on retrieval and actions under the effective execution identity; AI must not broaden
+    a user entitlement.
+  implementation: >-
+    Test object/table, field, record/document, tenant/domain and attachment boundaries including indirect retrieval
+    paths and caches.
+  required_settings_json: '{"source_authorization_preserved": true, "cross_user_data_access_allowed": false}'
+  evidence_required_json: '["Two-user denied-record/field tests covering search, summaries, citations and API/tool
+    paths."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A summary or citation exposes a field or record the user cannot otherwise read.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-004
+  name: Sensitive-content prevention before processing
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Prevent prohibited content reaching disallowed model, logging, feedback or export routes; masking alone is not
+    authorization.
+  implementation: >-
+    Verify feature-specific DLP/masking coverage and ordering. Block or exclude unsupported fields/routes and validate
+    both requests and outputs with representative test data.
+  required_settings_json: '{"sensitive_content_controls_cover_selected_routes": true, "masking_assumed_from_platform_brand":
+    false}'
+  evidence_required_json: '["Per-route masking/DLP configuration, detection tests and documented coverage gaps."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A custom action bypasses the masking applied to a standard prompt.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-005
+  name: Encryption across the complete AI data path
+  domain: Cryptography and secrets
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Protect data in transit and at rest across tenant, inference, logs, embeddings, caches, backups and integrations.
+  implementation: >-
+    Use approved TLS and certificate validation; obtain vendor evidence for backend storage and internal model routes
+    rather than assuming UI TLS covers all hops.
+  required_settings_json: '{"tls_certificate_validation_required": true, "plaintext_ai_integrations_allowed": false}'
+  evidence_required_json: '["Endpoint tests and feature-scoped vendor encryption/storage evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    The user interface is encrypted but an integration or diagnostic store carries plaintext sensitive data.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-006
+  name: Key management and cryptographic coverage
+  domain: Cryptography and secrets
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Document key ownership, rotation, revocation and coverage limits for all AI-related stores.
+  implementation: >-
+    Assess vendor-managed keys and customer-managed keys where required by policy. Do not assume a premium encryption
+    feature covers inference, indexes or prompts in memory.
+  required_settings_json: '{}'
+  evidence_required_json: '["Encryption coverage map, key-management evidence and customer-managed-key support/limitation
+    decision."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A key-management claim applies only to core records while AI transcripts are stored outside its scope.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-007
+  name: No training or secondary reuse
+  domain: Data lifecycle and privacy
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Do not permit customer prompts, outputs, grounding, feedback or logs to train shared models or improve vendor
+    products under this proposed baseline.
+  implementation: >-
+    Verify contractual terms and effective tenant opt-out for each provider, environment and feedback program. Review
+    tenant-specific learning separately; no fine-tuning is authorized here.
+  required_settings_json: '{"provider_training_on_customer_content": false, "product_improvement_data_sharing": false,
+    "unreviewed_feedback_learning_enabled": false}'
+  evidence_required_json: '["Feature/provider contractual terms, effective opt-out confirmations and feedback configuration."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Inference training is disabled but feedback or product-improvement sharing remains enabled.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-008
+  name: Separate model-provider retention from SaaS storage
+  domain: Data lifecycle and privacy
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Use no content retention by third-party model providers for the approved route; assess SaaS conversation, audit
+    and diagnostic storage independently.
+  implementation: >-
+    Obtain route-specific retention commitments and enumerate abuse monitoring, support, fallback and debug exceptions.
+    Unsupported terms are a blocking gap, not assumed zero retention.
+  required_settings_json: '{"third_party_model_content_retention": "none", "retention_claim_scope_documented": true}'
+  evidence_required_json: '["Provider commitments plus a separate SaaS store-by-store retention schedule."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A third-party zero-retention claim is used to declare that the SaaS keeps no conversations or audit content.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-009
+  name: Purpose-bound content and audit retention
+  domain: Data lifecycle and privacy
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Minimize content storage and apply approved retention, access restrictions and legal-hold handling to necessary
+    records.
+  implementation: >-
+    Disable optional raw content/debug logging. For mandatory vendor-held logs, determine content, location, access
+    and deletion support and obtain a scoped decision before enablement.
+  required_settings_json: '{"optional_raw_content_logging_enabled": false, "retention_and_legal_hold_schedule_defined":
+    true}'
+  evidence_required_json: '["Storage inventory including histories, prompts, responses, traces, feedback and incident
+    evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    AI traces retain full prompts indefinitely outside the approved records schedule.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-010
+  name: Processing location and cross-border routes
+  domain: Data lifecycle and privacy
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Restrict storage and processing to approved jurisdictions, including inference, overflow, disaster recovery, support
+    and subprocessors.
+  implementation: >-
+    Record exact route/region commitments and failover behavior. Restrict unapproved overflow rather than assuming
+    the tenant hosting region determines model execution.
+  required_settings_json: '{"processing_regions_allowlisted": true, "unapproved_region_fallback_allowed": false}'
+  evidence_required_json: '["Feature-level data-location map, subprocessor locations and regional fallback/overflow
+    decision."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Capacity overflow sends prompts to an unapproved region.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-011
+  name: Deletion, revocation and derived-data lifecycle
+  domain: Data lifecycle and privacy
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Propagate deletion and access revocation to derived copies, caches, embeddings, memories and outputs subject to
+    lawful retention.
+  implementation: >-
+    Define verified deletion windows and known backup/legal-hold limits; test source removal and entitlement changes
+    against retrieval.
+  required_settings_json: '{"derived_data_deletion_process_defined": true, "revoked_sources_remain_retrievable": false}'
+  evidence_required_json: '["Deletion/revocation test plus vendor backup, recovery and legal-hold limitations."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An erased source remains visible through an embedding, agent memory or saved summary.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-012
+  name: Tenant, user and session isolation
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Maintain tenant, user and session isolation in AI processing, caches, histories and vector/search stores.
+  implementation: >-
+    Test cross-user/context leakage and obtain vendor evidence for model-serving and storage separation. Conversation
+    identifiers are not an authorization control.
+  required_settings_json: '{"cross_tenant_context_reuse_allowed": false, "shared_user_conversation_memory_allowed":
+    false}'
+  evidence_required_json: '["Tenant-isolation assurance and cross-user/session adversarial tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    One user receives grounded data from another user through reused history or cache.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-DAT-013
+  name: Vendor support and human access
+  domain: Third-party assurance
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Constrain human vendor/subprocessor access to AI data to documented, authorized and audited purposes.
+  implementation: >-
+    Review support access, emergency access, diagnostics, human moderation and customer approval requirements. Ensure
+    restricted data cannot leak through support uploads.
+  required_settings_json: '{}'
+  evidence_required_json: '["Support-access controls, access-event availability and contractual human-access terms."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    Troubleshooting exposes production prompts to an unapproved support team or location.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-NET-001
+  name: SaaS network and access boundary
+  domain: Network and integration security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Secure approved SaaS access routes without imposing customer-managed AKS/private-endpoint requirements on vendor
+    infrastructure.
+  implementation: >-
+    Use approved domains, transport, session controls and available tenant IP/network restrictions. Require private
+    connectivity only where policy requires it and the specific route supports it.
+  required_settings_json: '{"unapproved_ai_endpoints_allowed": false, "customer_network_controls_bypassed": false}'
+  evidence_required_json: '["Approved endpoint inventory and connectivity decision for browser, API and connector
+    paths."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A browser, API or alternate model route sends content to an unapproved endpoint.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-NET-002
+  name: External destinations and exfiltration prevention
+  domain: Network and integration security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_connectors", "agents", "write_actions"]'
+  requirement: >-
+    Constrain outbound tool, webhook, fetch, email and export destinations to explicit business-approved allowlists.
+  implementation: >-
+    Validate resolved destinations and redirects; prevent attacker-chosen URLs, server-side request forgery and bulk
+    export via AI-generated parameters.
+  required_settings_json: '{"external_destinations_allowlisted": true, "model_selected_arbitrary_destinations_allowed":
+    false}'
+  evidence_required_json: '["Tool destination controls and rejected arbitrary-URL/redirect/export tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An injected instruction causes an agent to send record data to an attacker-controlled URL.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-NET-003
+  name: Credentials, tokens and secret references
+  domain: Cryptography and secrets
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Keep secrets in approved credential stores; scope, rotate and revoke integration credentials without placing values
+    in YAML or prompts.
+  implementation: >-
+    Use approved OAuth/service auth, restrict audiences/scopes and separate environments; avoid credential passthrough
+    or shared administrator tokens.
+  required_settings_json: '{"inline_credentials_allowed": false, "integration_credentials_scoped": true, "credential_rotation_and_revocation_defined":
+    true}'
+  evidence_required_json: '["Credential-reference inventory, redacted scope export and revocation test; never attach
+    secret values."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An agent action uses a long-lived administrator token embedded in its prompt or script.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-NET-004
+  name: API, webhook and tool input validation
+  domain: Network and integration security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_connectors", "write_actions", "custom_code"]'
+  requirement: >-
+    Authenticate inbound integrations and validate parameters, payloads and replay/idempotency controls for side effects.
+  implementation: >-
+    Enforce typed tool schemas and action allowlists. Validate webhook signatures or equivalent authenticated transport
+    and reject unsafe generated query/code fragments.
+  required_settings_json: '{"tool_parameters_validated": true, "side_effect_replay_protection_required": true}'
+  evidence_required_json: '["API/tool contracts, authentication configuration and rejected malformed/replayed-action
+    tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An AI-generated identifier or replayed callback updates an unauthorized record.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-AI-001
+  name: Feature-level AI protection coverage
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Identify effective input, output, retrieval and tool safeguards for each enabled feature and route; a product-wide
+    trust label is insufficient.
+  implementation: >-
+    Map native protections to required outcomes, record unsupported surfaces and prevent unreviewed direct model calls
+    or bypass routes.
+  required_settings_json: '{"input_protection_coverage_documented": true, "output_protection_coverage_documented":
+    true, "unreviewed_guardrail_bypass_allowed": false}'
+  evidence_required_json: '["Per-feature protection matrix and request/response/custom-route tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A custom skill lacks output filtering while the review claims universal Trust Layer coverage.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-002
+  name: Direct and indirect prompt-injection resistance
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Treat prompts, documents, email, tickets, tool results and retrieved content as untrusted; do not let model instructions
+    grant authority.
+  implementation: >-
+    Combine available detection with deterministic authorization, destination restrictions and human approval. Include
+    multi-turn and cross-agent negative tests.
+  required_settings_json: '{"untrusted_content_treated_as_data": true, "llm_text_can_override_authorization": false}'
+  evidence_required_json: '["Injection test plan and results across all in-scope input and retrieval surfaces."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A malicious knowledge article causes a tool invocation or data disclosure beyond the user entitlement.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-003
+  name: Safe output handling and downstream consumption
+  domain: AI security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Treat generated content as untrusted before rendering, execution or downstream business use.
+  implementation: >-
+    Encode HTML/Markdown, validate links and file types and review generated code/queries. Never automatically execute
+    model output as code or instructions.
+  required_settings_json: '{"model_output_auto_execution_allowed": false, "generated_content_sanitized": true}'
+  evidence_required_json: '["Output rendering/escaping tests and downstream input-validation controls."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A generated link, HTML fragment or query executes outside the intended operation.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-004
+  name: Grounding integrity and human verification
+  domain: AI security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Use approved sources and verify material AI claims before acting; citations must not disclose unauthorized source
+    metadata.
+  implementation: >-
+    Require evidence-aware review for high-impact outputs, handle uncertainty and route unsupported requests to a
+    safe human/non-AI fallback.
+  required_settings_json: '{"material_ai_output_human_review_required": true, "unverified_ai_output_treated_as_authoritative":
+    false}'
+  evidence_required_json: '["Source fidelity tests, hallucination/error handling and business review procedure."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A fabricated statement becomes an externally communicated fact or automated business decision.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-005
+  name: Prompt and configuration secrecy boundaries
+  domain: AI security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Keep credentials and confidential authorization rules out of prompts; leaked system instructions must not defeat
+    access control.
+  implementation: >-
+    Restrict prompt editing and exports, version templates and keep enforcement in deterministic policy rather than
+    hidden text.
+  required_settings_json: '{"secrets_in_prompts_allowed": false, "prompt_text_used_as_access_control": false}'
+  evidence_required_json: '["Redacted prompt review, editor permissions and prompt-extraction impact assessment."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Disclosure of a system prompt reveals a secret or enables privileged actions.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-006
+  name: Agent tool minimization and explicit authority
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Enable only task-required agents and tools with individually scoped permissions; disable unreviewed discovery
+    and collaboration.
+  implementation: >-
+    Maintain a tool/agent registry and approved dependencies; enforce authorization at the tool/resource boundary
+    rather than relying on topic instructions.
+  required_settings_json: '{"agent_tools_allowlisted": true, "unreviewed_agent_collaboration_enabled": false}'
+  evidence_required_json: '["Agent/tool inventory, effective scopes and rejected out-of-scope tool selection."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An agent discovers or calls a high-privilege agent/tool that was not reviewed.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-007
+  name: Per-action authorization and secure writeback
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["write_actions"]'
+  requirement: >-
+    Authorize the exact target, operation and parameters immediately before each AI-initiated business action.
+  implementation: >-
+    Separate read and write identities where practical; bind approvals to immutable action details and reauthorize
+    after context changes.
+  required_settings_json: '{"per_action_authorization_required": true, "unchecked_ai_writeback_allowed": false}'
+  evidence_required_json: '["Denied-record/action tests and parameter-bound authorization design."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A valid approval for one target is reused to change another customer record.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-AI-008
+  name: Human confirmation for business effects
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["write_actions"]'
+  requirement: >-
+    Require a trusted human gate before business-impacting actions, external communications and privileged operations
+    in this baseline.
+  implementation: >-
+    Present target, effect and data to the approver; avoid model-controlled approval paths and unattended consent
+    bypass.
+  required_settings_json: '{"human_confirmation_before_side_effects": true, "agent_can_approve_own_action": false}'
+  evidence_required_json: '["Supervised action test showing rejection, timeout and modified-parameter handling."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A tool executes before the human decision or treats model text as approval.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-AI-009
+  name: Bounded execution and recovery
+  domain: Agent and action security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Bound agent loops, time, tools, concurrent runs and consumption; define cancellation and recoverable side effects.
+  implementation: >-
+    Set approved budgets and stop conditions, detect repeated actions and provide compensating operations for safe
+    rollback.
+  required_settings_json: '{"agent_execution_limits_defined": true, "unbounded_agent_loops_allowed": false, "action_recovery_plan_defined":
+    true}'
+  evidence_required_json: '["Budget settings and cancellation/retry/partial-failure tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A failed tool causes an unbounded retry loop or duplicate business transactions.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-AI-010
+  name: Conversation memory and learning governance
+  domain: Agent and action security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Do not enable unreviewed persistent memory, experience learning or cross-user context reuse.
+  implementation: >-
+    Document memory ownership, access, lifetime, poisoning defenses and deletion. Keep personalization and shared-model
+    training decisions separate.
+  required_settings_json: '{"unreviewed_persistent_memory_enabled": false, "memory_access_and_deletion_defined": true}'
+  evidence_required_json: '["Memory/learning settings, storage scope and cross-user/deletion tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A malicious instruction persists into future sessions or another user context.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-AI-011
+  name: Safe failure of required safeguards
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Do not silently continue the protected operation when a mandatory authorization, privacy or safety safeguard is
+    unavailable.
+  implementation: >-
+    Verify actual feature failure behavior. Restrict or disable unsupported functionality rather than inventing a
+    fail-closed vendor toggle.
+  required_settings_json: '{"required_protection_failure_behavior": "block_or_safe_non_ai_fallback", "silent_unguarded_fallback_allowed":
+    false}'
+  evidence_required_json: '["Timeout/outage tests and vendor evidence for the required protection boundary."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Guardrail or authorization failure falls back to an unprotected model route.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-RAG-001
+  name: Approved retrieval sources and ingestion
+  domain: Retrieval and knowledge security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["retrieval"]'
+  requirement: >-
+    Retrieve only owner-approved, permission-aware sources; treat externally authored content and attachments as untrusted.
+  implementation: >-
+    Review sources, publishers, change controls, file scanning and index configuration; exclude poisoned, stale and
+    prohibited content.
+  required_settings_json: '{"retrieval_sources_allowlisted": true, "unreviewed_sources_auto_indexed": false}'
+  evidence_required_json: '["Source/connector inventory, provenance controls and malicious document/attachment tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A new untrusted repository is indexed and can instruct agents to disclose data.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-RAG-002
+  name: Permission-aware retrieval and citations
+  domain: Retrieval and knowledge security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["retrieval"]'
+  requirement: >-
+    Filter retrieval results and citations by the current effective user permissions at query time.
+  implementation: >-
+    Test source ACLs, index-level controls, document metadata and redacted fields; service-account ingestion does
+    not confer read permission to everyone.
+  required_settings_json: '{"retrieval_authorization_at_query_time": true, "citations_can_disclose_denied_sources":
+    false}'
+  evidence_required_json: '["Two-user search/summary/citation denial tests and service-account ingestion design."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A user sees a restricted document title, snippet or summary despite being denied the source.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-RAG-003
+  name: Index change and access-revocation propagation
+  domain: Retrieval and knowledge security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["retrieval"]'
+  requirement: >-
+    Maintain source-to-index permission and deletion propagation within a defined safe window.
+  implementation: >-
+    Document refresh intervals and invalidation; fail safely where permission freshness cannot be established.
+  required_settings_json: '{"index_acl_refresh_defined": true, "stale_permissions_accepted_without_review": false}'
+  evidence_required_json: '["ACL change, document delete and source disconnect tests with measured propagation."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Removed source permissions still permit retrieval from a stale index.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-INT-001
+  name: Connector authorization and consent
+  domain: Network and integration security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_connectors"]'
+  requirement: >-
+    Use only reviewed connectors with minimal OAuth scopes and explicitly authorized owners and consent.
+  implementation: >-
+    Disallow user-installed shadow connectors; review delegated versus app-only scopes and revocation for every destination.
+  required_settings_json: '{"connector_catalog_restricted": true, "end_user_unreviewed_connector_consent_allowed":
+    false}'
+  evidence_required_json: '["Connector registration, scopes, consent grants and disconnect/revocation test."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A user adds an app-only connector with broad read/write permissions.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-INT-002
+  name: Custom code and packaged extension security
+  domain: Application and supply-chain security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["custom_code"]'
+  requirement: >-
+    Review custom actions, scripts, packages and integrations for secure coding, least privilege and supply-chain
+    integrity.
+  implementation: >-
+    Use peer review, static/dependency/secret scanning and controlled promotion; validate input/output and prohibit
+    unsafe generated code deployment.
+  required_settings_json: '{"custom_ai_code_security_review_required": true, "unreviewed_ai_packages_allowed": false}'
+  evidence_required_json: '["Code/package inventory, scan findings, release provenance and authorization tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A generated script or marketplace action reaches production without code/security review.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-INT-003
+  name: MCP and agent-to-agent trust boundary
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["mcp"]'
+  requirement: >-
+    Treat MCP and cross-agent integrations as separate authenticated tool and data boundaries, not trusted merely
+    because a server is reachable.
+  implementation: >-
+    Review server identity, OAuth/token audience and scopes, tool changes, destinations, delegated authority and revocation.
+    Do not pass through unrelated bearer tokens.
+  required_settings_json: '{"mcp_servers_and_tools_allowlisted": true, "mcp_token_passthrough_allowed": false, "mcp_tool_changes_reviewed":
+    true}'
+  evidence_required_json: '["MCP/A2A threat model, server/tool registry, token-scope evidence and denied-tool tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A trusted server changes a tool definition or reuses a token to access a different downstream service.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-MON-001
+  name: Security events and action traceability
+  domain: Monitoring and detection
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Capture who invoked AI, effective identity, feature/version, sources, policy decisions and material actions without
+    unnecessary content.
+  implementation: >-
+    Confirm feature/licensing support, correlation IDs, integrity and export for access, admin, connector, DLP and
+    action events.
+  required_settings_json: '{"ai_security_events_captured": true, "actor_and_effective_identity_traceable": true}'
+  evidence_required_json: '["Feature event coverage matrix and sanitized sample events for denied access and an action."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An action is logged without the initiating actor, effective principal or target.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-MON-002
+  name: Central detection and incident correlation
+  domain: Monitoring and detection
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Route actionable AI security events to enterprise monitoring and define ownership and alert handling.
+  implementation: >-
+    Detect anomalous access, export, injection, connector grants, configuration changes and cost spikes; monitor log-export
+    health.
+  required_settings_json: '{"ai_security_events_exported_to_monitoring": true, "ai_alert_owner_assigned": true}'
+  evidence_required_json: '["Redacted event received by SIEM, alert rule tests and export failure runbook."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Suspicious bulk retrieval is visible only in a vendor console nobody monitors.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-MON-003
+  name: Protected logs and redacted diagnostics
+  domain: Monitoring and detection
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Protect AI audit, feedback and diagnostic data against overexposure and tampering.
+  implementation: >-
+    Restrict readers/exporters, redact sensitive fields, apply retention and legal holds and separate security metadata
+    from raw conversation content.
+  required_settings_json: '{"ai_log_access_restricted": true, "ai_logs_redacted_before_export": true}'
+  evidence_required_json: '["Log-reader roles, redacted samples, retention settings and audit integrity evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An SIEM export or feedback record leaks a prohibited prompt or response.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-MON-004
+  name: Security testing and evidence freshness
+  domain: Security assurance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Require security tests of the actual configured feature before enablement and after material change.
+  implementation: >-
+    Test denied identities, over-sharing, injection, prohibited data, unsafe actions, guardrail failures, deletion
+    and disablement. Unit tests check declarations only.
+  required_settings_json: '{}'
+  evidence_required_json: '["Feature/version-bound test results, findings, remediation, accountable reviewer and evidence
+    freshness."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A green YAML check is presented as a completed live SaaS penetration test.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-OPS-001
+  name: Vendor security and infrastructure assurance
+  domain: Third-party assurance
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Obtain assurance for tenant isolation, infrastructure, physical/personnel security, secure development, vulnerability
+    management and relevant AI subprocessors.
+  implementation: >-
+    Review current reports and their scope/exceptions, independent security testing, patch practices and AI service
+    boundaries; certifications alone do not approve the feature.
+  required_settings_json: '{}'
+  evidence_required_json: '["Scoped assurance package, subprocessor inventory and unresolved risk/remediation register."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    The vendor report excludes the AI processing service being enabled.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-OPS-002
+  name: AI incident response and breach handling
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Establish AI incident ownership, vendor escalation, containment, evidence preservation and breach-notification
+    obligations.
+  implementation: >-
+    Cover data leakage, prompt injection, harmful outputs, compromised agents/connectors and unexpected model changes;
+    exercise one representative scenario.
+  required_settings_json: '{}'
+  evidence_required_json: '["Joint incident runbook, vendor contact/escalation terms and tabletop outcome."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A connector leaks data and neither the SaaS owner nor the SOC knows how to contain it.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-OPS-003
+  name: Emergency disablement and credential revocation
+  domain: Operations and resilience
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Provide a tested way to stop AI activity across UI, API, scheduled, agent and connector paths.
+  implementation: >-
+    Disable the relevant features and triggers, revoke credentials and address active/queued tasks; retain the core
+    non-AI service where safely possible.
+  required_settings_json: '{"ai_emergency_disablement_defined": true, "disablement_covers_background_and_api_paths":
+    true}'
+  evidence_required_json: '["Authorized operator runbook and disablement/revocation exercise covering active jobs."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    The UI is disabled but an API token or scheduled agent continues acting.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-OPS-004
+  name: Business continuity and safe non-AI fallback
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Define service availability, recovery and safe fallback without bypassing mandatory security controls.
+  implementation: >-
+    Assess model/provider dependency and region failure, restoration of configurations and business records, and manual
+    handling during outages.
+  required_settings_json: '{}'
+  evidence_required_json: '["AI dependency map, vendor SLA/recovery evidence, backup/restore responsibility and non-AI
+    continuity exercise."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A model outage forces unapproved processing or prevents the core business process.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-OPS-005
+  name: Consumption and resource-abuse controls
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Limit request volume, payload size, concurrency, tokens, retries and expenditure to the approved use case.
+  implementation: >-
+    Configure available quotas/budgets, alert owners and safe stopping behavior; prevent denial of service through
+    oversized attachments or repeated requests.
+  required_settings_json: '{"ai_usage_limits_defined": true, "ai_consumption_alerts_enabled": true}'
+  evidence_required_json: '["Limit settings, oversize/rate-limit tests and cost-alert routing."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Repeated oversized prompts exhaust service capacity or create uncontrolled spend.
+  supports_baseline_json: '[]'
+  source_refs_json: '["OWASP-LLM"]'
+- id: SAAS-OPS-006
+  name: Material-change control and recertification
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Reassess relevant controls when features, model routes, regions, data sources, permissions, agents or contractual
+    terms change.
+  implementation: >-
+    Monitor vendor notices and default-on changes. Use version-bound promotion, drift review and a defined reassessment
+    cadence.
+  required_settings_json: '{"material_ai_changes_trigger_review": true, "unreviewed_default_on_features_allowed":
+    false}'
+  evidence_required_json: '["Change triggers, review cadence, vendor notice handling and configuration comparison."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An upgrade activates a new skill or provider without a security impact review.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-OPS-007
+  name: Exit, portability and complete decommissioning
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Provide an exit path for AI features, data, indexes, memories and integrations while preserving required business
+    records.
+  implementation: >-
+    Export needed configuration/audit metadata, revoke identities/consent, remove derived stores and obtain deletion
+    confirmation subject to lawful retention.
+  required_settings_json: '{}'
+  evidence_required_json: '["Exit checklist, retention/legal-hold decision, credential revocation and vendor deletion
+    commitments."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    AI access is removed but embeddings, tokens and retained conversation copies remain unmanaged.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-PRV-001
+  name: Privacy, legal and model-risk applicability
+  domain: Privacy and business risk
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Determine privacy, contract, records, intellectual-property and model-risk obligations for the specific AI use
+    and data population.
+  implementation: >-
+    Obtain qualified domain-owner decisions for applicable requirements; do not equate security endorsement with privacy/legal/model-risk/release
+    approval.
+  required_settings_json: '{}'
+  evidence_required_json: '["Feature-scoped privacy/legal/model-risk screening and required decisions; no blanket
+    compliance assertion."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A security assessment is reused as authorization for a new regulated decision or population.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-CHN-001
+  name: External audience and public-channel protections
+  domain: Channel security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_users"]'
+  requirement: >-
+    External/guest AI access requires a separately scoped enablement decision and must not inherit internal-user assumptions.
+  implementation: >-
+    Define verified customer identity, rate/abuse protections, disclosure boundaries and human handoff. Keep external
+    audiences disabled in the internal starter profile.
+  required_settings_json: '{"external_audience_separately_reviewed": true, "guest_ai_can_access_internal_data": false}'
+  evidence_required_json: '["External-channel threat model, verified identity/record-binding tests and abuse/handoff
+    tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An anonymous guest enumerates internal knowledge or another customer case.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'
+- id: SAAS-CHN-002
+  name: Attachments, voice and screen inputs
+  domain: Channel security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["multimodal"]'
+  requirement: >-
+    Review multimodal capture, processing, consent, storage and content limits as distinct AI input routes.
+  implementation: >-
+    Restrict file types/size, scan attachments, disable unreviewed capture and apply privacy controls to transcripts,
+    images and derived text.
+  required_settings_json: '{"multimodal_routes_reviewed": true, "unreviewed_recording_or_screen_capture_allowed":
+    false}'
+  evidence_required_json: '["Channel data-flow/retention map, file validation and prohibited-content tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Audio or an image bypasses the text-only sensitive-data controls.
+  supports_baseline_json: '[]'
+  source_refs_json: '[]'

@@ -1,0 +1,479 @@
+# TABLE-EDITOR FORMAT: top-level array; one security control per row.
+# Policy: ABC-SERVICENOW-AI-ENABLEMENT | version: 1.1 | status: draft
+# Inherits: saas-ai-enablement-baseline.yaml @ 1.1; mode: additive_only
+# Keep policy-metadata.json with these files for inheritance, features, scope and sources.
+# *_json columns contain quoted JSON text; true/false inside JSON retain their Boolean types.
+# Only the representation changed. Security requirements and evidence remain unmodified.
+
+- id: SN-001
+  name: Instance, release, plugin and skill inventory
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Approve exact ServiceNow instances, platform/plugin versions, AI skills, agents and user channels.
+  implementation: >-
+    Record installed Now Assist/AI applications and actual labels in the tenant; inventory generative skills, custom
+    skills and activation defaults. Public documentation is version-specific, not proof of installed coverage.
+  required_settings_json: '{"servicenow_instance_skill_inventory_complete": true, "servicenow_unreviewed_skills_active":
+    false}'
+  evidence_required_json: '["Instance/release/plugin/skill inventory and activation scope."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An application update activates an additional skill not in the assessed inventory.
+  supports_baseline_json: '["SAAS-GOV-001", "SAAS-OPS-006"]'
+  source_refs_json: '[]'
+- id: SN-002
+  name: Administration, steward and privacy roles
+  domain: Identity and access
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Restrict AI configuration, data-sharing, privacy and skill/agent administration to separately reviewed roles.
+  implementation: >-
+    Review effective admin roles and least-privilege assignments, including the relevant data steward and Data Privacy
+    roles for the installed version; users must not change their own protection policy.
+  required_settings_json: '{"servicenow_ai_admin_roles_restricted": true, "servicenow_users_can_change_privacy_policy":
+    false}'
+  evidence_required_json: '["Effective role assignments and unauthorized configuration-change tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An ordinary AI user can opt into data sharing or disable privacy protection.
+  supports_baseline_json: '["SAAS-IAM-002", "SAAS-IAM-004"]'
+  source_refs_json: '["SN-OPT-OUT", "SN-PRIVACY"]'
+- id: SN-003
+  name: Table, record, field and attachment authorization
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Enforce the actual table/record/field/attachment authorization boundary for all AI retrieval and writes.
+  implementation: >-
+    Test the ACL behavior of selected skills, scripts, record tools and retrieval APIs; do not assume a user-facing
+    ACL automatically constrains every privileged backend operation.
+  required_settings_json: '{"servicenow_table_record_field_acls_preserved": true, "servicenow_denied_attachments_used_for_grounding":
+    false}'
+  evidence_required_json: '["Two-user denied-table/field/record/attachment tests and effective execution context."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A summary exposes restricted HR or customer fields through a backend data query.
+  supports_baseline_json: '["SAAS-DAT-003"]'
+  source_refs_json: '[]'
+- id: SN-004
+  name: Skill invocation ACLs
+  domain: Identity and access
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Restrict invocation of each enabled standard/custom skill to approved users and roles.
+  implementation: >-
+    Review skill-level access controls and missing ACL warnings in the installed Skill Kit/Admin experience. Separately
+    validate permissions on the data that the skill reads.
+  required_settings_json: '{"servicenow_skill_invocation_acls_defined": true, "servicenow_unrestricted_custom_skill_invocation":
+    false}'
+  evidence_required_json: '["Skill/role/ACL map and denied-invocation tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A user without the approved role invokes a custom skill directly.
+  supports_baseline_json: '["SAAS-IAM-002", "SAAS-DAT-003"]'
+  source_refs_json: '["SN-SKILL-ACL"]'
+- id: SN-005
+  name: Agent and workflow invocation versus execution
+  domain: Identity and access
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Review agent/workflow invocation ACLs independently from the identity and permissions used after invocation.
+  implementation: >-
+    Configure each agent/workflow invocation boundary and document the run-as identity at every downstream step. An
+    allowed invocation is not proof of least-privilege execution.
+  required_settings_json: '{"servicenow_agent_invocation_acls_defined": true, "servicenow_run_as_identity_matrix_defined":
+    true}'
+  evidence_required_json: '["Invocation ACL and run-as matrix for parent agents, workflows and tools, with low-privilege
+    tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A user passes an invocation ACL and then gains a higher-privileged execution identity.
+  supports_baseline_json: '["SAAS-IAM-006", "SAAS-AI-006"]'
+  source_refs_json: '["SN-ACCESS"]'
+- id: SN-006
+  name: Dynamic-user role masking and AI-user privileges
+  domain: Identity and access
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Use an explicitly reviewed execution identity and restrict privileges using mechanisms that apply to that identity
+    type.
+  implementation: >-
+    Prefer caller-scoped execution where appropriate. In the cited Zurich model, role masking applies to dynamic users,
+    not fixed AI users; independently scope any AI-user roles and test the installed version.
+  required_settings_json: '{"servicenow_role_masking_applicability_reviewed": true, "servicenow_fixed_ai_user_privileges_scoped":
+    true, "servicenow_admin_ai_runtime_allowed": false}'
+  evidence_required_json: '["Identity-type/role map, role-mask settings where supported and independent dedicated-user
+    access tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Role masking is assumed to constrain a fixed AI user whose assigned roles remain broad.
+  supports_baseline_json: '["SAAS-IAM-006", "SAAS-IAM-002"]'
+  source_refs_json: '["SN-ACCESS", "SN-ROLE-MASK"]'
+- id: SN-007
+  name: Delegation and cross-agent escalation
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Prevent authority expansion through parent/child agents, automated triggers and agentic workflows.
+  implementation: >-
+    Review every delegation edge and effective principal, including non-conversational/system trigger context; allowlist
+    collaboration and reauthorize targets at the tool boundary.
+  required_settings_json: '{"servicenow_delegation_authority_reviewed": true, "servicenow_unreviewed_agent_privilege_escalation":
+    false}'
+  evidence_required_json: '["Delegation matrix and low-to-high-privilege negative tests across agent chains."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A low-privilege agent persuades a more privileged agent to export protected records.
+  supports_baseline_json: '["SAAS-AI-006", "SAAS-AI-007"]'
+  source_refs_json: '["SN-ACCESS"]'
+- id: SN-008
+  name: Supervised business-impacting tools
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["write_actions"]'
+  requirement: >-
+    Require trusted human approval before ServiceNow AI tools perform business-impacting or privileged operations.
+  implementation: >-
+    Use supported supervised execution or an independently enforced approval gate; prevent unattended bypass and bind
+    approvals to the exact operation and target.
+  required_settings_json: '{"servicenow_business_tools_supervised": true, "servicenow_tool_supervision_bypass_allowed":
+    false}'
+  evidence_required_json: '["Tool execution mode/configuration and rejected/timeout/modified-action approval tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An agent runs a record operation or workflow action before the required human approval.
+  supports_baseline_json: '["SAAS-AI-007", "SAAS-AI-008"]'
+  source_refs_json: '["SN-ACCESS"]'
+- id: SN-009
+  name: Generative AI Controller and model routes
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Inventory and approve each skill/agent model provider, credential and processing route including fallback and
+    custom providers.
+  implementation: >-
+    Review actual Generative AI Controller/model selections and installed integrations. Check protection, retention,
+    region and secret boundaries separately for custom routes.
+  required_settings_json: '{"servicenow_model_routes_allowlisted": true, "servicenow_unreviewed_provider_fallback_allowed":
+    false}'
+  evidence_required_json: '["Skill-to-model/provider route inventory, credentials references and region/retention
+    evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A skill switches to an unapproved custom provider or fallback route.
+  supports_baseline_json: '["SAAS-AI-001", "SAAS-DAT-008", "SAAS-DAT-010"]'
+  source_refs_json: '[]'
+- id: SN-010
+  name: Effective opt-out of data sharing
+  domain: Data lifecycle and privacy
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Disable customer-content sharing for product/model improvement on every in-scope instance and verify the effective
+    state.
+  implementation: >-
+    Use the applicable data-sharing controls and obtain completion evidence; do not treat an opt-out request as already
+    effective. Review test/clone instances and special offering differences separately.
+  required_settings_json: '{"servicenow_product_improvement_sharing_enabled": false, "servicenow_opt_out_effective_all_in_scope_instances":
+    true}'
+  evidence_required_json: '["Instance list, opt-out request and effective-state confirmation, plus applicable contractual
+    terms."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Production AI starts while opt-out is still processing or one nonproduction instance remains opted in.
+  supports_baseline_json: '["SAAS-DAT-007"]'
+  source_refs_json: '["SN-OPT-OUT"]'
+- id: SN-011
+  name: Overflow and inference residency
+  domain: Data lifecycle and privacy
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Do not allow unapproved AI overflow, failover or cross-region processing.
+  implementation: >-
+    Review the installed data-overflow control and vendor processing locations for each model route; record disabled/restricted
+    behavior or block enablement when the required location cannot be assured.
+  required_settings_json: '{"servicenow_unapproved_overflow_processing_allowed": false, "servicenow_inference_regions_reviewed":
+    true}'
+  evidence_required_json: '["Overflow setting, route/region evidence and capacity/failure behavior decision."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Prompts leave an approved jurisdiction when inference capacity is constrained.
+  supports_baseline_json: '["SAAS-DAT-010"]'
+  source_refs_json: '["SN-OVERFLOW"]'
+- id: SN-012
+  name: Data Privacy policy and channel coverage
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Configure and test sensitive-data protection for every selected AI processing channel and feature.
+  implementation: >-
+    Verify installed privacy prerequisites and active policy/patterns. Distinguish inference, evaluation and extraction/training
+    channels; detection patterns and masking do not replace field minimization or access controls.
+  required_settings_json: '{"servicenow_ai_privacy_policy_active": true, "servicenow_privacy_channels_and_patterns_reviewed":
+    true, "servicenow_masking_assumed_complete": false}'
+  evidence_required_json: '["Active policy/channel/pattern export and representative multilingual, formatted and free-text
+    masking tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A policy protects one channel while custom evaluation or inference sends unmasked content through another.
+  supports_baseline_json: '["SAAS-DAT-004", "SAAS-DAT-001"]'
+  source_refs_json: '["SN-PRIVACY"]'
+- id: SN-013
+  name: Guardian enforcement and feature coverage
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Configure the required protective action for in-scope Guardian detections and verify skill-level coverage instead
+    of treating logging as blocking.
+  implementation: >-
+    Review instance/skill settings and supported detection categories. Require blocking or safe fallback for the mandated
+    cases and test false positives, misses and protection failure; detection is not an authorization boundary.
+  required_settings_json: '{"servicenow_guardian_required_action": "block_or_safe_fallback", "servicenow_guardian_skill_coverage_reviewed":
+    true, "servicenow_logging_only_counted_as_blocking": false}'
+  evidence_required_json: '["Guardian policy export and input/output injection/offensive-content tests for the selected
+    skills."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Guardian records an injection event but the feature still returns the prohibited result.
+  supports_baseline_json: '["SAAS-AI-001", "SAAS-AI-002", "SAAS-AI-011"]'
+  source_refs_json: '["SN-GUARDIAN"]'
+- id: SN-014
+  name: AI Search and Knowledge source permissions
+  domain: Retrieval and knowledge security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["retrieval"]'
+  requirement: >-
+    Constrain AI Search/Knowledge grounding to approved sources and preserve effective user criteria and data permissions.
+  implementation: >-
+    Review searchable sources, article/attachment restrictions and applicable criteria; test internal, HR and customer
+    boundaries and source revocation for the selected retrieval implementation.
+  required_settings_json: '{"servicenow_ai_search_permissions_preserved": true, "servicenow_unapproved_knowledge_sources_enabled":
+    false}'
+  evidence_required_json: '["Source/user-criteria/retriever configuration and denied-source/citation tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A user sees a restricted HR article or customer case through a generated search answer.
+  supports_baseline_json: '["SAAS-RAG-001", "SAAS-RAG-002", "SAAS-RAG-003"]'
+  source_refs_json: '[]'
+- id: SN-015
+  name: Domain separation and multi-instance boundaries
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["domain_separation"]'
+  requirement: >-
+    Verify domain-separation support and behavior for each AI skill, index, agent and log store when domain separation
+    is used.
+  implementation: >-
+    Do not infer AI feature support from core-platform domain separation. Test child/parent domains, system contexts
+    and consolidated indexes; unsupported isolation blocks that usage.
+  required_settings_json: '{"servicenow_ai_domain_isolation_supported_and_reviewed": true, "servicenow_cross_domain_ai_access_allowed":
+    false}'
+  evidence_required_json: '["Feature-specific support evidence and cross-domain retrieval/action/log-access tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A domain-separated instance uses an AI index or system agent that ignores the intended domain boundary.
+  supports_baseline_json: '["SAAS-DAT-012", "SAAS-DAT-003"]'
+  source_refs_json: '[]'
+- id: SN-016
+  name: IntegrationHub and outbound connections
+  domain: Network and integration security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_connectors"]'
+  requirement: >-
+    Constrain AI-accessible integrations, connection/credential aliases and destinations to the reviewed scope.
+  implementation: >-
+    Separate connection owners and runtime identities, minimize OAuth scopes and review connector actions and credential
+    rotation. Disable unused integrations.
+  required_settings_json: '{"servicenow_ai_integrations_allowlisted": true, "servicenow_connection_credentials_least_privilege":
+    true}'
+  evidence_required_json: '["Connection/action/credential-reference inventory and destination/scope denial tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A broad integration account lets an AI action access unrelated systems.
+  supports_baseline_json: '["SAAS-INT-001", "SAAS-NET-002", "SAAS-NET-003"]'
+  source_refs_json: '[]'
+- id: SN-017
+  name: MID Server hybrid bridge protections
+  domain: Network and integration security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["mid_server"]'
+  requirement: >-
+    Apply customer-managed host, identity and network controls only when a MID Server is actually part of the AI-connected
+    path.
+  implementation: >-
+    Inventory MID hosts, segment connectivity, minimize credentials and target access, patch/monitor the host and
+    restrict reachable internal actions; do not impose MID requirements on SaaS-only features.
+  required_settings_json: '{"servicenow_mid_server_hardened_and_scoped": true, "servicenow_mid_ai_unrestricted_internal_access":
+    false}'
+  evidence_required_json: '["MID host/identity/egress inventory, patch evidence and denied internal-target tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An AI integration uses a MID Server to reach arbitrary internal targets.
+  supports_baseline_json: '["SAAS-NET-002", "SAAS-IAM-006", "SAAS-OPS-001"]'
+  source_refs_json: '[]'
+- id: SN-018
+  name: Custom skills, scripts and generated code
+  domain: Application and supply-chain security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["custom_code"]'
+  requirement: >-
+    Review Skill Kit prompts, custom scripts, script includes, Flow actions and generated code for input validation
+    and effective permissions.
+  implementation: >-
+    Check applicable secure record APIs/explicit authorization, scoped application privileges and code/supply-chain
+    scans; invocation ACLs alone do not prove script-level record authorization.
+  required_settings_json: '{"servicenow_custom_ai_code_reviewed": true, "servicenow_generated_code_auto_deployed":
+    false, "servicenow_script_data_authorization_enforced": true}'
+  evidence_required_json: '["Code/skill inventory, scans and independent denied-record/field tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A custom script invoked through a skill reads or updates a protected record.
+  supports_baseline_json: '["SAAS-INT-002", "SAAS-DAT-003"]'
+  source_refs_json: '["SN-SKILL-ACL"]'
+- id: SN-019
+  name: Record writes and operational remediation
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["write_actions"]'
+  requirement: >-
+    Constrain AI writes, approvals, catalog requests and operational remediation to reviewed targets with recovery
+    and human control.
+  implementation: >-
+    Prevent autonomous privilege grants, destructive remediation and unapproved outbound communications; validate
+    exact record fields, idempotency and compensating actions.
+  required_settings_json: '{"servicenow_ai_write_targets_scoped": true, "servicenow_autonomous_privilege_grants_allowed":
+    false}'
+  evidence_required_json: '["Write/remediation action inventory, target authorization and recovery tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An agent grants access or resolves a security incident outside its approved action scope.
+  supports_baseline_json: '["SAAS-AI-007", "SAAS-AI-008", "SAAS-AI-009"]'
+  source_refs_json: '[]'
+- id: SN-020
+  name: Virtual Agent and external channel identity
+  domain: Channel security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_users"]'
+  requirement: >-
+    Separately scope unauthenticated/public portals, Virtual Agent and other external channels.
+  implementation: >-
+    Bind user identity to accessible records, restrict internal knowledge, review live-agent fallback and prevent
+    transcript/session reuse across users.
+  required_settings_json: '{"servicenow_external_channel_identity_bound": true, "servicenow_guest_internal_ai_access":
+    false}'
+  evidence_required_json: '["Channel/session configuration and cross-user/guest denial tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An unauthenticated portal request exposes an internal record through generative conversation.
+  supports_baseline_json: '["SAAS-CHN-001", "SAAS-DAT-012"]'
+  source_refs_json: '[]'
+- id: SN-021
+  name: Agent memory, learning and feedback
+  domain: Agent and action security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Review persistent agent memory, learning and feedback as separate data stores and secondary-use paths.
+  implementation: >-
+    Disable unreviewed learning/memory, restrict who can populate/read it and define reset/deletion and poisoning
+    controls for the installed capability.
+  required_settings_json: '{"servicenow_unreviewed_agent_learning_enabled": false, "servicenow_agent_memory_scope_and_lifecycle_defined":
+    true}'
+  evidence_required_json: '["Feature memory/learning settings and deletion/cross-user/poisoning tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An injected instruction is retained as future agent behavior or shared context.
+  supports_baseline_json: '["SAAS-AI-010", "SAAS-DAT-007", "SAAS-DAT-011"]'
+  source_refs_json: '[]'
+- id: SN-022
+  name: Guardian, skill and agent audit evidence
+  domain: Monitoring and detection
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Verify that selected skills and agents provide the events needed for investigation, including effective identity
+    and tool/action outcomes.
+  implementation: >-
+    Review available Guardian, execution, admin and analytics logs for the installed version; restrict prompt/conversation
+    content and export redacted security metadata with a tested monitoring path.
+  required_settings_json: '{"servicenow_ai_audit_coverage_documented": true, "servicenow_ai_security_logs_exported":
+    true, "servicenow_ai_log_content_restricted": true}'
+  evidence_required_json: '["Feature/event coverage matrix, redacted events received by monitoring and retention/access
+    configuration."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Guardian or execution logs contain sensitive conversations accessible to broad roles or absent from monitoring.
+  supports_baseline_json: '["SAAS-MON-001", "SAAS-MON-002", "SAAS-MON-003"]'
+  source_refs_json: '["SN-GUARDIAN"]'
+- id: SN-023
+  name: Skill, agent, trigger and tool emergency stop
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Provide a tested instance-specific disablement procedure covering skills, agents, triggers, tools and integrations.
+  implementation: >-
+    Use supported kill-switch/deactivation mechanisms where available and revoke relevant credentials; verify handling
+    of queued/running workflows and manual service continuation.
+  required_settings_json: '{"servicenow_ai_kill_switch_scope_documented": true, "servicenow_background_ai_jobs_contained":
+    true}'
+  evidence_required_json: '["Disablement/revocation runbook and active/queued workflow exercise."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    The assistant panel is disabled while an agent trigger continues operating.
+  supports_baseline_json: '["SAAS-OPS-003", "SAAS-OPS-004"]'
+  source_refs_json: '[]'
+- id: SN-024
+  name: Clone, upgrade and configuration revalidation
+  domain: Operations and resilience
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Revalidate effective AI settings after instance clones, upgrades, plugin updates and skill/model changes.
+  implementation: >-
+    Check sharing opt-out, privacy patterns/channels, Guardian action, invocation ACLs, run-as roles, integrations
+    and default-on capabilities in every in-scope instance.
+  required_settings_json: '{"servicenow_clone_upgrade_security_revalidation_required": true, "servicenow_clones_assumed_to_inherit_ai_approval":
+    false}'
+  evidence_required_json: '["Post-clone/upgrade checklist and feature-version-bound negative regression results."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A clone or update resets sharing, protection or permission settings without detection.
+  supports_baseline_json: '["SAAS-OPS-006", "SAAS-MON-004", "SAAS-GOV-004"]'
+  source_refs_json: '[]'

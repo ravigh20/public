@@ -1,0 +1,442 @@
+# TABLE-EDITOR FORMAT: top-level array; one security control per row.
+# Policy: ABC-SALESFORCE-AI-ENABLEMENT | version: 1.1 | status: draft
+# Inherits: saas-ai-enablement-baseline.yaml @ 1.1; mode: additive_only
+# Keep policy-metadata.json with these files for inheritance, features, scope and sources.
+# *_json columns contain quoted JSON text; true/false inside JSON retain their Boolean types.
+# Only the representation changed. Security requirements and evidence remain unmodified.
+
+- id: SF-001
+  name: Salesforce feature and org inventory
+  domain: Governance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Limit enablement to named Einstein/Agentforce features, orgs, releases, channels and entitlements.
+  implementation: >-
+    Inventory Prompt Builder, agents, Data Cloud/Data 360 dependencies, model routes, standard/custom actions and
+    UI/API entry points actually selected. A product name is not an approval scope.
+  required_settings_json: '{"salesforce_feature_org_matrix_complete": true, "salesforce_unreviewed_features_enabled":
+    false}'
+  evidence_required_json: '["Org/feature/SKU matrix, selected functionality and release-specific capability evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Enabling a shared AI switch unintentionally exposes an additional agent or feature.
+  supports_baseline_json: '["SAAS-GOV-001", "SAAS-OPS-006"]'
+  source_refs_json: '[]'
+- id: SF-002
+  name: AI permission sets and builder separation
+  domain: Identity and access
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Restrict AI usage and administration through reviewed Salesforce permissions without granting broad administrative
+    access.
+  implementation: >-
+    Review effective profiles, permission sets/groups and integration users; separate prompt/agent builders, deployers,
+    operators and users.
+  required_settings_json: '{"salesforce_ai_permissions_least_privilege": true, "salesforce_ai_builders_can_self_approve":
+    false}'
+  evidence_required_json: '["Effective permission export and unauthorized-user/builder denial tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A broad permission-set group gives all users prompt-editing or agent-management access.
+  supports_baseline_json: '["SAAS-IAM-002", "SAAS-IAM-004"]'
+  source_refs_json: '[]'
+- id: SF-003
+  name: Agent identity and effective execution authority
+  domain: Identity and access
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Document the effective principal for every agent, channel and action; do not assume all Agentforce actions run
+    as the human user.
+  implementation: >-
+    Review agent/service/integration users and record access under each actual action context. Restrict service-user
+    permissions and recheck downstream authority.
+  required_settings_json: '{"salesforce_agent_execution_contexts_documented": true, "salesforce_agent_admin_runtime_allowed":
+    false}'
+  evidence_required_json: '["Agent/channel/action execution-identity matrix and denied-record tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A service agent exposes records using a broader service-user grant.
+  supports_baseline_json: '["SAAS-IAM-006", "SAAS-DAT-003"]'
+  source_refs_json: '[]'
+- id: SF-004
+  name: Object, field and record authorization
+  domain: Data protection
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Enforce object permissions, field-level security and record sharing independently on AI read and write paths.
+  implementation: >-
+    Review permission sets, sharing rules, ownership and Apex/Flow/action behavior; test field and record denials
+    in generated summaries and tool responses.
+  required_settings_json: '{"salesforce_object_field_record_access_enforced": true, "salesforce_denied_fields_in_grounding_allowed":
+    false}'
+  evidence_required_json: '["Object/field/sharing configuration plus two-user negative retrieval and action tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A summary returns a field hidden by field-level security.
+  supports_baseline_json: '["SAAS-DAT-003"]'
+  source_refs_json: '["SF-APEX"]'
+- id: SF-005
+  name: Flow and action execution context
+  domain: Application and supply-chain security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["write_actions", "custom_code"]'
+  requirement: >-
+    Assess each AI-invoked Flow/action execution mode and guard against elevated-context authorization bypass.
+  implementation: >-
+    Review system/user context and resource authorization at the actual operation; require explicit restrictions and
+    tests for any elevated execution.
+  required_settings_json: '{"salesforce_flow_action_contexts_reviewed": true, "salesforce_unchecked_elevated_flow_actions":
+    false}'
+  evidence_required_json: '["Flow/action inventory, reviewed execution modes and low-privilege invocation tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An agent invokes a system-context Flow to update a record the requester cannot change.
+  supports_baseline_json: '["SAAS-AI-007", "SAAS-IAM-006"]'
+  source_refs_json: '[]'
+- id: SF-006
+  name: Secure Apex behind AI actions
+  domain: Application and supply-chain security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["custom_code"]'
+  requirement: >-
+    Custom Apex must enforce sharing and object/field permissions, validate input and avoid unreviewed privilege elevation.
+  implementation: >-
+    Use appropriate user-mode operations or explicit CRUD/FLS checks such as stripInaccessible as applicable. The
+    with sharing keyword alone does not enforce object/field permissions.
+  required_settings_json: '{"salesforce_apex_sharing_enforced": true, "salesforce_apex_crud_fls_enforced": true, "salesforce_apex_inputs_validated":
+    true}'
+  evidence_required_json: '["Apex code review/scans and independent denied-object, denied-field and denied-record
+    unit tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An Apex action uses sharing but returns fields the user is not permitted to read.
+  supports_baseline_json: '["SAAS-DAT-003", "SAAS-INT-002"]'
+  source_refs_json: '["SF-APEX"]'
+- id: SF-007
+  name: Prompt Builder and grounding boundaries
+  domain: AI security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["prompt_builder"]'
+  requirement: >-
+    Restrict template authoring and data resolution to approved fields, objects and sources.
+  implementation: >-
+    Version templates; review merge fields, grounding actions, retrieved attachments and dynamic context. Do not place
+    secrets or business authorization only in instructions.
+  required_settings_json: '{"salesforce_prompt_templates_reviewed": true, "salesforce_grounding_fields_minimized":
+    true}'
+  evidence_required_json: '["Redacted templates, builder permissions, grounding field inventory and injection tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A prompt template pulls extra sensitive fields or an unreviewed data source.
+  supports_baseline_json: '["SAAS-AI-005", "SAAS-DAT-002"]'
+  source_refs_json: '[]'
+- id: SF-008
+  name: Trust Layer coverage by feature and route
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Verify actual masking, input/output protection and audit coverage for the exact Einstein/Agentforce capability
+    and model route.
+  implementation: >-
+    Use the current feature documentation and tenant tests. Do not infer masking availability or equivalence across
+    agent actions, Prompt Builder and Models API from a general Trust Layer overview.
+  required_settings_json: '{"salesforce_trust_layer_feature_coverage_documented": true, "salesforce_masking_assumed_for_all_features":
+    false}'
+  evidence_required_json: '["Feature/route capability matrix, observed configuration and representative DLP/guardrail
+    tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A generic masking statement is used to approve a feature with an unverified protection path.
+  supports_baseline_json: '["SAAS-AI-001", "SAAS-DAT-004"]'
+  source_refs_json: '["SF-TRUST"]'
+- id: SF-009
+  name: Third-party retention versus Salesforce-held data
+  domain: Data lifecycle and privacy
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Verify the approved LLM route retention commitment separately from Salesforce-held histories, feedback, audit
+    and trace stores.
+  implementation: >-
+    Document which party retains which records and under what term. Include diagnostics, optional feedback and custom
+    provider routes; a partner retention agreement does not clear other stores.
+  required_settings_json: '{"salesforce_provider_and_platform_retention_separated": true, "salesforce_custom_provider_terms_reviewed":
+    true}'
+  evidence_required_json: '["Route-specific contractual evidence and Salesforce AI storage/retention inventory."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Zero retention at an LLM partner is incorrectly used to waive Salesforce transcript/log review.
+  supports_baseline_json: '["SAAS-DAT-007", "SAAS-DAT-008", "SAAS-DAT-009"]'
+  source_refs_json: '["SF-TRUST"]'
+- id: SF-010
+  name: Data Cloud/Data 360 access and segregation
+  domain: Retrieval and knowledge security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["data_cloud"]'
+  requirement: >-
+    Review data spaces, ingestion grants, shared datasets and AI retrieval permissions for the selected Data Cloud/Data
+    360 usage.
+  implementation: >-
+    Map CRM permissions to effective data/retriever entitlements; do not assume replicated or unified data preserves
+    the original sharing boundary automatically.
+  required_settings_json: '{"salesforce_data_space_access_reviewed": true, "salesforce_crm_acl_parity_assumed": false}'
+  evidence_required_json: '["Dataset/data-space/retriever grants and cross-user/source denial tests for the chosen
+    configuration."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A unified dataset or retriever exposes records across a previously separated business boundary.
+  supports_baseline_json: '["SAAS-DAT-003", "SAAS-RAG-002"]'
+  source_refs_json: '[]'
+- id: SF-011
+  name: Retrievers, indexes and connected sources
+  domain: Retrieval and knowledge security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["retrieval"]'
+  requirement: >-
+    Authorize every retrieved document and citation under the intended principal and constrain indexing to approved
+    sources.
+  implementation: >-
+    Test custom/standard retrievers, service-account ingestion, deleted sources and changed permissions. Review index
+    refresh and derived metadata exposure.
+  required_settings_json: '{"salesforce_retrievers_permission_aware": true, "salesforce_index_revocation_test_plan_defined":
+    true}'
+  evidence_required_json: '["Retriever/source mapping and record/field/citation/ACL-change negative test plan and
+    results."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A user retrieves a stale or restricted indexed document through an AI response.
+  supports_baseline_json: '["SAAS-RAG-001", "SAAS-RAG-002", "SAAS-RAG-003"]'
+  source_refs_json: '[]'
+- id: SF-012
+  name: Knowledge visibility and file access
+  domain: Retrieval and knowledge security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["retrieval"]'
+  requirement: >-
+    Preserve selected Knowledge article, channel and file visibility when content is used for AI answers.
+  implementation: >-
+    Inventory internal/customer/partner visibility, file links and source permissions for the actual feature; exclude
+    internal-only knowledge from external channels.
+  required_settings_json: '{"salesforce_knowledge_channel_visibility_preserved": true, "salesforce_ai_public_file_sharing_allowed":
+    false}'
+  evidence_required_json: '["Knowledge/file visibility export and denied-article/attachment tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An externally visible answer includes an internal article or privately shared file.
+  supports_baseline_json: '["SAAS-DAT-003", "SAAS-RAG-002"]'
+  source_refs_json: '[]'
+- id: SF-013
+  name: External and named credential scope
+  domain: Network and integration security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_connectors"]'
+  requirement: >-
+    Restrict connected/external client applications and named/external credentials to the minimum identity, scope
+    and endpoint required.
+  implementation: >-
+    Inventory configured integrations, principal mappings, OAuth consent and secrets references; prohibit unrestricted
+    administrator credentials and unreviewed personal connections.
+  required_settings_json: '{"salesforce_external_credentials_scoped": true, "salesforce_unreviewed_connected_apps_allowed":
+    false}'
+  evidence_required_json: '["Redacted application/credential scope inventory and token revocation tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An AI action uses a broad external credential to export unrelated customer data.
+  supports_baseline_json: '["SAAS-NET-003", "SAAS-INT-001"]'
+  source_refs_json: '[]'
+- id: SF-014
+  name: Guest and customer-facing agent channels
+  domain: Channel security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["external_users"]'
+  requirement: >-
+    Separately review Experience Cloud, messaging, web and other external agent channels and their identity-to-record
+    binding.
+  implementation: >-
+    Prevent guest access to internal records and require verified customer identity before revealing customer-specific
+    data; test session substitution and abuse handling.
+  required_settings_json: '{"salesforce_external_agent_identity_verified": true, "salesforce_guest_internal_record_access":
+    false}'
+  evidence_required_json: '["Channel/guest permissions, identity verification design and cross-customer denial tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An anonymous or different customer session accesses a customer record by guessing its identifier.
+  supports_baseline_json: '["SAAS-CHN-001", "SAAS-DAT-012"]'
+  source_refs_json: '[]'
+- id: SF-015
+  name: Action confirmation and outbound communication
+  domain: Agent and action security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["write_actions"]'
+  requirement: >-
+    Require trusted confirmation and per-target authorization before Salesforce AI performs business writes or external
+    communications.
+  implementation: >-
+    Restrict action inventory and parameter binding, preview intended changes, prevent self-approval and handle retries
+    without duplicate effects.
+  required_settings_json: '{"salesforce_business_actions_require_confirmation": true, "salesforce_ai_action_self_approval_allowed":
+    false}'
+  evidence_required_json: '["Action catalog, confirmation controls and denied/modified/replayed-action tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    An agent sends customer email or changes an opportunity/case without required approval.
+  supports_baseline_json: '["SAAS-AI-007", "SAAS-AI-008", "SAAS-NET-004"]'
+  source_refs_json: '[]'
+- id: SF-016
+  name: AI audit, session tracing and log exports
+  domain: Monitoring and detection
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Verify event and trace availability for the selected features and purchased entitlements; protect stored content
+    and export actionable security metadata.
+  implementation: >-
+    Assess available AI audit/session tracing, Setup changes and Event Monitoring as applicable. Document coverage,
+    storage, readers, retention and export limitations instead of assuming a license includes them.
+  required_settings_json: '{"salesforce_ai_event_coverage_documented": true, "salesforce_ai_log_content_access_restricted":
+    true}'
+  evidence_required_json: '["Feature/license event matrix, sanitized samples received centrally and retention/deletion
+    configuration."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A licensed feature cannot export required events or stores content outside the reviewed retention boundary.
+  supports_baseline_json: '["SAAS-MON-001", "SAAS-MON-002", "SAAS-MON-003"]'
+  source_refs_json: '["SF-TRUST"]'
+- id: SF-017
+  name: Custom model and direct API routes
+  domain: AI security
+  severity: critical
+  responsibility: shared
+  applies_when_json: '["custom_models", "custom_code"]'
+  requirement: >-
+    Review custom model integrations and direct model/API calls as separate routes with explicit protection, retention
+    and residency coverage.
+  implementation: >-
+    Restrict selected models/providers and credentials; do not assume custom Apex callouts or alternate model configurations
+    inherit native Trust Layer guarantees.
+  required_settings_json: '{"salesforce_custom_model_routes_allowlisted": true, "salesforce_unreviewed_direct_model_calls_allowed":
+    false}'
+  evidence_required_json: '["Custom route/provider map, terms and request/response protection evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Custom code calls a model endpoint outside the approved protection and retention boundary.
+  supports_baseline_json: '["SAAS-AI-001", "SAAS-DAT-008", "SAAS-DAT-010"]'
+  source_refs_json: '["SF-TRUST"]'
+- id: SF-018
+  name: Salesforce configuration promotion and regression
+  domain: Security assurance
+  severity: high
+  responsibility: customer
+  applies_when_json: '["always"]'
+  requirement: >-
+    Review and test security-significant agent, prompt, Flow, Apex and permission changes before promotion.
+  implementation: >-
+    Use controlled versions and sandbox tests with approved data; recheck entitlement, leakage, action and protection
+    paths after feature/model releases.
+  required_settings_json: '{"salesforce_ai_changes_regression_tested": true, "salesforce_unreviewed_ai_production_promotion":
+    false}'
+  evidence_required_json: '["Promotion record and feature-version-bound security regression results."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A new action or prompt version reaches production without rerunning authorization tests.
+  supports_baseline_json: '["SAAS-GOV-004", "SAAS-MON-004", "SAAS-OPS-006"]'
+  source_refs_json: '[]'
+- id: SF-019
+  name: Disable all agent and feature entry points
+  domain: Operations and resilience
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Stop the selected Salesforce AI feature across channels, API clients, triggers, schedules and delegated credentials
+    during an incident.
+  implementation: >-
+    Document exact tenant-specific disablement steps and treatment of active sessions and queued actions; exercise
+    credential revocation and safe manual fallback.
+  required_settings_json: '{"salesforce_ai_disablement_all_entry_points": true, "salesforce_ai_active_job_containment_defined":
+    true}'
+  evidence_required_json: '["Org-specific disablement runbook and exercise results."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    Disabling an agent UI leaves a scheduled invocation or API integration active.
+  supports_baseline_json: '["SAAS-OPS-003", "SAAS-OPS-004"]'
+  source_refs_json: '[]'
+- id: SF-020
+  name: Salesforce encryption coverage limits
+  domain: Cryptography and secrets
+  severity: high
+  responsibility: shared
+  applies_when_json: '["always"]'
+  requirement: >-
+    Determine whether the selected platform encryption and key options cover every relevant AI-derived store and processing
+    route.
+  implementation: >-
+    Review actual Shield/platform-encryption entitlements only where selected; document unsupported fields, indexes,
+    logs and runtime data. Do not assume one option covers all AI artifacts.
+  required_settings_json: '{}'
+  evidence_required_json: '["Feature/store/key coverage map and vendor confirmation for unsupported surfaces."]'
+  validation_mode: manual_evidence
+  negative_scenario: >-
+    A core-record encryption claim is applied to AI transcripts, embeddings or inference without evidence.
+  supports_baseline_json: '["SAAS-DAT-005", "SAAS-DAT-006"]'
+  source_refs_json: '[]'
+- id: SF-021
+  name: Third-party agents, packages and MCP extensions
+  domain: Application and supply-chain security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["mcp", "custom_code"]'
+  requirement: >-
+    Subject third-party agent actions and MCP extensions to the same identity, data, code and tool-change review as
+    other external integrations.
+  implementation: >-
+    Allowlist package/tool versions and publishers, review permissions and destinations, and retest changes; marketplace
+    availability is not enterprise approval.
+  required_settings_json: '{"salesforce_third_party_ai_extensions_reviewed": true, "salesforce_unreviewed_tool_discovery_allowed":
+    false}'
+  evidence_required_json: '["Extension/tool registry, source/provider assessment and permission/revocation tests."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A newly installed agent package or MCP tool obtains broad customer-data access.
+  supports_baseline_json: '["SAAS-INT-002", "SAAS-INT-003"]'
+  source_refs_json: '[]'
+- id: SF-022
+  name: Agent memory, history and feedback separation
+  domain: Agent and action security
+  severity: high
+  responsibility: shared
+  applies_when_json: '["agents"]'
+  requirement: >-
+    Scope Salesforce AI history, memory and feedback use to the reviewed tenant, user and purpose.
+  implementation: >-
+    Inventory the stores actually used by the selected feature, disable unreviewed persistent/shared learning and
+    test deletion and cross-session separation.
+  required_settings_json: '{"salesforce_memory_and_feedback_scope_reviewed": true, "salesforce_shared_cross_user_ai_memory_allowed":
+    false}'
+  evidence_required_json: '["Feature memory/history/feedback configuration and isolation/deletion evidence."]'
+  validation_mode: declared_settings_and_evidence
+  negative_scenario: >-
+    A retained conversation or feedback path discloses information across user sessions.
+  supports_baseline_json: '["SAAS-AI-010", "SAAS-DAT-007", "SAAS-DAT-011"]'
+  source_refs_json: '[]'
